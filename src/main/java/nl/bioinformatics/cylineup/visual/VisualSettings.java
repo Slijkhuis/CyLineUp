@@ -1,6 +1,7 @@
 package nl.bioinformatics.cylineup.visual;
 
 import java.awt.Color;
+import java.awt.Dimension;
 
 public class VisualSettings {
 	
@@ -12,6 +13,11 @@ public class VisualSettings {
 	public static final int GRID_FIX_COLUMNS = 1;
 	public static final int GRID_FIX_ROWS = 2;
 	
+	public static final int NODATA_SHOW = 0;
+	public static final int NODATA_GREY = 1;
+	public static final int NODATA_HIDE = 2;
+	
+	private int noDataNodes = 0;
 	private int scale = 1;
 	private float pValueCutOff = 0.001f;
 	private int useFillColor = USE_FOR_FOLDCHANGE;
@@ -22,7 +28,29 @@ public class VisualSettings {
 	private int useTransparency = DONT_USE;
 	private int gridMode = GRID_AUTO;
 	private int gridFixed = 2;
+	private boolean autoSize = true;
+	private int sizeWidth = 1080;
+	private int sizeHeight = 1080;
+	public Dimension calculatedSize = null;
 	
+	public boolean isAutoSize() {
+		return autoSize;
+	}
+	public void setAutoSize(boolean autoSize) {
+		this.autoSize = autoSize;
+	}
+	public int getSizeWidth() {
+		return sizeWidth;
+	}
+	public void setSizeWidth(int sizeWidth) {
+		this.sizeWidth = sizeWidth;
+	}
+	public int getSizeHeight() {
+		return sizeHeight;
+	}
+	public void setSizeHeight(int sizeHeight) {
+		this.sizeHeight = sizeHeight;
+	}
 	private double minValue;
 	private double maxValue;
 	private double minPValue;
@@ -112,5 +140,11 @@ public class VisualSettings {
 	}
 	public void setMaxPValue(double maxPValue) {
 		this.maxPValue = maxPValue;
+	}
+	public int getNoDataNodes() {
+		return noDataNodes;
+	}
+	public void setNoDataNodes(int noDataNodes) {
+		this.noDataNodes = noDataNodes;
 	}
 }

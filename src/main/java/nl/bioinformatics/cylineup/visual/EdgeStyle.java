@@ -27,6 +27,8 @@ public class EdgeStyle {
 		edge.setLockedValue(BasicVisualLexicon.EDGE_TARGET_ARROW_SHAPE, e.getVisualProperty(BasicVisualLexicon.EDGE_TARGET_ARROW_SHAPE));
 		
 		edge.setLockedValue(BasicVisualLexicon.EDGE_WIDTH, e.getVisualProperty(BasicVisualLexicon.EDGE_WIDTH));
+		
+		edge.setLockedValue(BasicVisualLexicon.EDGE_VISIBLE, e.getVisualProperty(BasicVisualLexicon.EDGE_VISIBLE));
 	}
 	
 }

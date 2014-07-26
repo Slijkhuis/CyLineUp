@@ -68,6 +68,11 @@ public class SwingHelper {
 		// Get desktop size
 		final Dimension desktopSize = refs.desktopManager.getDesktopViewAreaSize();
 		
+		// Check if we need to override desktop size
+		if(!refs.settings.isAutoSize()) {
+			desktopSize.setSize(new Dimension(refs.settings.getSizeWidth(), refs.settings.getSizeHeight()));
+		}
+		
 		// Get the total frame count
 		int frameCount = refs.smallMultiples.size(); 
 		if ( frameCount == 0)

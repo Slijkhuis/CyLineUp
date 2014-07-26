@@ -11,14 +11,12 @@ import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.application.swing.CyNetworkViewDesktopMgr;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent;
-import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.io.write.PresentationWriterManager;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.RenderingEngineManager;
-import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
-import org.cytoscape.view.vizmap.VisualMappingManager;
-import org.cytoscape.view.vizmap.VisualStyleFactory;
+import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
 
 public class CyActivator extends AbstractCyActivator {
@@ -29,18 +27,18 @@ public class CyActivator extends AbstractCyActivator {
 	
 	public void start(BundleContext bc) {
 		
+		System.out.println("CyLineUp started.");
+		
 		// Create reference object
 		CyLineUpReferences refs = new CyLineUpReferences();
 		refs.desktopApp = getService(bc,CySwingApplication.class);
-		refs.networkManager = getService(bc, CyNetworkManager.class);
 		refs.networkViewManager = getService(bc, CyNetworkViewManager.class);
 		refs.desktopManager = getService(bc, CyNetworkViewDesktopMgr.class);
 		refs.appManager = getService(bc, CyApplicationManager.class);
 		refs.networkFactory = getService(bc, CyNetworkViewFactory.class);
-		refs.vmmServiceRef = getService(bc,VisualMappingManager.class);
-		refs.visualStyleFactoryServiceRef = getService(bc,VisualStyleFactory.class);
-		refs.vmfFactory = getService(bc,VisualMappingFunctionFactory.class, "(mapping.type=passthrough)");
 		refs.renderingManager = getService(bc,RenderingEngineManager.class);
+		refs.presentationWriterManager = getService(bc, PresentationWriterManager.class);
+		refs.taskManager = getService(bc, DialogTaskManager.class);
 		
 		// Add import action
 		CyLineUpImportAction importAction = new CyLineUpImportAction(refs);
@@ -54,9 +52,13 @@ public class CyActivator extends AbstractCyActivator {
 		refs.importAction = importAction;
 		refs.updateAction = updateAction;
 		
+		System.out.println("CyLineUp initialized.");
+		
 		// Add panel tab
 		CyLineUpPanel panel = new CyLineUpPanel(refs);
 		registerService(bc, panel, CytoPanelComponent.class, new Properties());
+		
+		System.out.println("CyLineUp panel added");
 	}
 	
 }

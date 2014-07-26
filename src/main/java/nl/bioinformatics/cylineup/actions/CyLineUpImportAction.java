@@ -5,11 +5,12 @@ import java.awt.event.ActionEvent;
 import javax.swing.JOptionPane;
 
 import nl.bioinformatics.cylineup.CyLineUpReferences;
-import nl.bioinformatics.cylineup.gui.windows.ImportWindow;
 import nl.bioinformatics.cylineup.models.SmallMultiple;
+import nl.bioinformatics.cylineup.tasks.ImportTask;
 
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.TaskIterator;
 
 public class CyLineUpImportAction extends AbstractCyAction {
 	
@@ -62,7 +63,8 @@ public class CyLineUpImportAction extends AbstractCyAction {
 			return;
 		}
 		
-		new ImportWindow(refs);
+		refs.taskManager.execute(new TaskIterator(new ImportTask(refs)));
+		
 	}
 	
 }

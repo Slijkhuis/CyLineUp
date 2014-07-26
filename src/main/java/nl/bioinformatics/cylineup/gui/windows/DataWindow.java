@@ -18,7 +18,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import nl.bioinformatics.cylineup.CyLineUpReferences;
-import nl.bioinformatics.cylineup.NetworkHelper;
 import nl.bioinformatics.cylineup.gui.ColumnItem;
 import nl.bioinformatics.cylineup.gui.JTableButtonMouseListener;
 import nl.bioinformatics.cylineup.gui.JTableButtonRenderer;
@@ -28,7 +27,9 @@ import nl.bioinformatics.cylineup.models.NodeTableColumnsComboModel;
 import nl.bioinformatics.cylineup.models.SMTableModel;
 import nl.bioinformatics.cylineup.models.SmallMultiple;
 import nl.bioinformatics.cylineup.models.TableRowTransferHandler;
-import nl.bioinformatics.cylineup.visual.VisualHelper;
+import nl.bioinformatics.cylineup.tasks.CreateTask;
+
+import org.cytoscape.work.TaskIterator;
 
 public class DataWindow extends JFrame {
 
@@ -208,19 +209,8 @@ public class DataWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
-				// Retrieve the small multiples from the table model and copy them while saving the order
-				int i = 1;
-				for(SmallMultiple sm : tModel.smallMultiples) {
-					sm.setOrder(i);
-					refs.smallMultiples.add(sm);
-					i++;
-				}
-				
-				// Create networks
-				NetworkHelper.createNetworks(refs);
-				
-				// Set visual styles and fit network in views
-				VisualHelper.updateViews(refs, true);
+				// Run creation task
+				refs.taskManager.execute(new TaskIterator(new CreateTask(tModel.smallMultiples, refs)));
 				
 				// Close current window
 				dispose();

@@ -13,6 +13,8 @@ public class SmallMultiple {
 	private ColumnItem pValueColumn;
 	private boolean isControl;
 	private CyNetworkView view;
+	private String tempVector;
+	private String tempRaster;
 	
 	public SmallMultiple() {
 		this("-", 0, new ColumnItem("-", 0), new ColumnItem("-", 0));
@@ -79,6 +81,22 @@ public class SmallMultiple {
 
 	public void setView(CyNetworkView view) {
 		this.view = view;
+	}
+
+	public String getTempVector() {
+		return tempVector;
+	}
+
+	public void setTempVector(String tempVector) {
+		this.tempVector = tempVector;
+	}
+
+	public String getTempRaster() {
+		return tempRaster;
+	}
+
+	public void setTempRaster(String tempRaster) {
+		this.tempRaster = tempRaster;
 	}
 	
 	

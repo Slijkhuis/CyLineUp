@@ -27,16 +27,21 @@ import javax.swing.event.ChangeListener;
 
 import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.gui.LayoutHelper;
-import nl.bioinformatics.cylineup.gui.windows.ExportWindow;
-import nl.bioinformatics.cylineup.visual.VisualHelper;
+import nl.bioinformatics.cylineup.tasks.ExportWindowTask;
+import nl.bioinformatics.cylineup.tasks.PreviewTask;
+import nl.bioinformatics.cylineup.tasks.RenderTask;
+import nl.bioinformatics.cylineup.tasks.UpdateTask;
 import nl.bioinformatics.cylineup.visual.VisualSettings;
 
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.work.TaskIterator;
 
 public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 	
 	private static final long serialVersionUID = 6825548675965333721L;
+	private boolean autoupdate = true;
+	private CyLineUpReferences refs;
 	
 	/**
 	 * Constructor for the LineUp panel
@@ -45,6 +50,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 	 */
 	public CyLineUpPanel(final CyLineUpReferences refs) {
 		
+		this.refs = refs;
 		
 		/** Create GUI elements **/
 		
@@ -61,6 +67,14 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		// Create update button
 		JButton updateBtn = new JButton("Update network views");
 		
+		// Create auto-update check box
+		final JCheckBox autoUpdateChk = new JCheckBox("Auto-update");
+		
+		// Create workspace size controls
+		final JCheckBox autoSize = new JCheckBox("<html><p>Auto (use window size)</p></html>");
+		final JSpinner sizeWidth = new JSpinner(new SpinnerNumberModel(1080, 320, 3840, 10));
+		final JSpinner sizeHeight = new JSpinner(new SpinnerNumberModel(1080, 320, 3840, 10));
+		
 		// Create grid buttons
 		ButtonGroup ggroup = new ButtonGroup();
 		JRadioButton g1 = new JRadioButton("<html><p>Auto</p></html>");
@@ -72,6 +86,13 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		
 		// Create grid input field
 		final JSpinner gridInput = new JSpinner(new SpinnerNumberModel(2, 1, 15, 1));
+		
+		// Create data-less nodes buttons
+		ButtonGroup ndgroup = new ButtonGroup();
+		JRadioButton nd1 = new JRadioButton("<html><p>Show</p></html>");
+		JRadioButton nd2 = new JRadioButton("<html><p>Gray out</p></html>");
+		JRadioButton nd3 = new JRadioButton("<html><p>Hide</p></html>");
+		ndgroup.add(nd1); ndgroup.add(nd2); ndgroup.add(nd3);
 		
 		// Create scale slider
 		final JSlider slider = new JSlider(1, 10);
@@ -120,19 +141,26 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		
 		/** Create layout **/
 		
-		layout.addRow(new JLabel("<html><h1>CyLineUp BETA</h1></html>"));
+		layout.addRow(new JLabel("<html><h1>CyLineUp v1.0.0</h1></html>"));
 		layout.addRow(new JLabel("<html><b>DATA</b></html>"));
 		layout.addRow(new JLabel("<html><p>Start with opening the network to which you want to map your transcriptome data. Then press the button 'Import data' below to open your datafile and map columns to small multiples of the current network.</p></html>"));
 		layout.addRow(importBtn);
 		layout.addRow(new JLabel("<html><b>VIEWS</b></html>"));
 		layout.addRow(new JLabel("<html><p>Use the button below to sync the zoom and panning of all network views to the currently selected network view and to apply the grid and visual style settings to the networks.</p></html>"));
 		layout.addRow(updateBtn);
+		layout.addRow(new JLabel("<html><p>Use the width and height controls below to determine the output size when exporting the visualization. (Note: margins and room for titles are not taken into account)</p></html>"));
+		layout.addRow(autoSize);
+		layout.addRow(new float[] { 1f, 1f }, new JLabel("<html><p>Width:</p></html>"), new JLabel("<html><p>Height:</p></html>"));
+		layout.addRow(new float[] { 1f, 1f }, sizeWidth, sizeHeight);
+		layout.addRow(autoUpdateChk);
 		layout.addRow(new JLabel("<html><p>Number of fixed columns/rows:</p></html>"));
 		layout.addRow(g1);
 		layout.addRow(g2);
 		layout.addRow(g3);
 		layout.addRow(gridInput);
 		layout.addRow(new JLabel("<html><b>VISUAL STYLES</b></html>"));
+		layout.addRow(new JLabel("<html><p>Nodes that have no data associated:</p></html>"));
+		layout.addRow(new float[] {1f, 1f, 1f}, nd1, nd2, nd3);
 		layout.addRow(new JLabel("<html><p>Use the slider below to set the maximum node scale factor (ranges from no scaling to 10x as big). This control is most usefull after you've imported data.</p></html>"));
 		layout.addRow(slider);
 		layout.addRow(new JLabel("<html><b>p-value cut-off</b></html>"));
@@ -159,6 +187,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		
 		/** Set default values **/
 		
+		autoUpdateChk.setSelected(autoupdate);
 		g1.setSelected(true);
 		gridInput.setEnabled(false);
 		slider.setValue(refs.settings.getScale());
@@ -169,12 +198,61 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		
 		/** Assign actions **/
 		
+		// Auto update action
+		autoUpdateChk.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				autoupdate = autoUpdateChk.isSelected();
+			}
+		});
+		
+		// Auto size checkbox
+		autoSize.setSelected(refs.settings.isAutoSize());
+		autoSize.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				refs.settings.setAutoSize(autoSize.isSelected());
+				
+				if(autoSize.isSelected()) {
+					sizeWidth.setEnabled(false);
+					sizeHeight.setEnabled(false);
+				} else {
+					sizeWidth.setEnabled(true);
+					sizeHeight.setEnabled(true);
+				}
+				
+				doAutoupdate();
+			}
+		});
+		
+		// Size controls are disabled on default
+		sizeWidth.setEnabled(false);
+		sizeHeight.setEnabled(false);
+		
+		// Set size control actions
+		sizeWidth.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				refs.settings.setSizeWidth((Integer) sizeWidth.getValue());
+				doAutoupdate();
+			}
+		});
+		sizeHeight.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				refs.settings.setSizeHeight((Integer) sizeHeight.getValue());
+				doAutoupdate();
+			}
+		});
+		
 		// Set grid button actions
 		g1.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				gridInput.setEnabled(false);
 				refs.settings.setGridMode(VisualSettings.GRID_AUTO);
+				doAutoupdate();
 			}
 		});
 		g2.addActionListener(new ActionListener() {
@@ -182,6 +260,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			public void actionPerformed(ActionEvent e) {
 				gridInput.setEnabled(true);
 				refs.settings.setGridMode(VisualSettings.GRID_FIX_COLUMNS);
+				doAutoupdate();
 			}
 		});
 		g3.addActionListener(new ActionListener() {
@@ -189,12 +268,37 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			public void actionPerformed(ActionEvent e) {
 				gridInput.setEnabled(true);
 				refs.settings.setGridMode(VisualSettings.GRID_FIX_ROWS);
+				doAutoupdate();
 			}
 		});
 		gridInput.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				refs.settings.setGridFixed((Integer) gridInput.getValue());
+				doAutoupdate();
+			}
+		});
+		
+		// Data-less nodes change actions
+		nd1.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refs.settings.setNoDataNodes(VisualSettings.NODATA_SHOW);
+				doAutoupdate();
+			}
+		});
+		nd2.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refs.settings.setNoDataNodes(VisualSettings.NODATA_GREY);
+				doAutoupdate();
+			}
+		});
+		nd3.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refs.settings.setNoDataNodes(VisualSettings.NODATA_HIDE);
+				doAutoupdate();
 			}
 		});
 		
@@ -203,6 +307,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				refs.settings.setScale(slider.getValue());
+				doAutoupdate();
 			}
 		});
 		
@@ -221,6 +326,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					refs.settings.setpValueCutOff(Float.parseFloat(r.getText()));
+					doAutoupdate();
 				}
 			});
 		}
@@ -230,18 +336,21 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseFillColor(VisualSettings.DONT_USE);
+				doAutoupdate();
 			}
 		});
 		f2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseFillColor(VisualSettings.USE_FOR_PVALUE);
+				doAutoupdate();
 			}
 		});
 		f3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseFillColor(VisualSettings.USE_FOR_FOLDCHANGE);
+				doAutoupdate();
 			}
 		});
 		
@@ -250,12 +359,14 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseFillColorForUp(useUpColor.isSelected());
+				doAutoupdate();
 			}
 		});
 		useDownColor.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseFillColorForDown(useDownColor.isSelected());
+				doAutoupdate();
 			}
 		});
 		
@@ -266,6 +377,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		        Color c = JColorChooser.showDialog(((Component)e.getSource()).getParent(), "Pick a color", Color.green);
 		        upPreview.setColor(c);
 		        refs.settings.setUpColor(c);
+		        doAutoupdate();
 			}
 		});
 		pickDownColor.addActionListener(new ActionListener() {
@@ -274,6 +386,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		        Color c = JColorChooser.showDialog(((Component)e.getSource()).getParent(), "Pick a color", Color.red);
 		        downPreview.setColor(c);
 		        refs.settings.setDownColor(c);
+		        doAutoupdate();
 			}
 		});
 		
@@ -282,38 +395,40 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseTransparency(VisualSettings.DONT_USE);
+				doAutoupdate();
 			}
 		});
 		t2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseTransparency(VisualSettings.USE_FOR_PVALUE);
+				doAutoupdate();
 			}
 		});
 		t3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				refs.settings.setUseTransparency(VisualSettings.USE_FOR_FOLDCHANGE);
+				doAutoupdate();
 			}
 		});
 		
 		exportButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Export to PNG.");
-				
-				// Create a window
-				// TODO: create export window
-				
-				new ExportWindow(refs);
-				
+				// Run task(s)
+				refs.taskManager.execute(new TaskIterator(
+						new RenderTask(refs),
+						new PreviewTask(refs),
+						new ExportWindowTask(refs)
+					));
 			}
 		});
 		
 		/** Set up container **/
 		
 		// Set container size
-		container.setPreferredSize(new Dimension(310, 1300));
+		container.setPreferredSize(new Dimension(310, 1600));
 		
 		// Create scroll pane
 		final JScrollPane scrollPane = new JScrollPane(container, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -355,10 +470,16 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// Update views
-				VisualHelper.updateViews(refs);
+				refs.taskManager.execute(new TaskIterator(new UpdateTask(refs)));
 			}
 		});
 		
+	}
+	
+	private void doAutoupdate() {
+		if(autoupdate) {
+			refs.taskManager.execute(new TaskIterator(new UpdateTask(refs)));
+		}
 	}
 	
 	@Override

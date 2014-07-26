@@ -1,5 +1,6 @@
 package nl.bioinformatics.cylineup;
 
+import java.awt.Image;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,30 +15,23 @@ import nl.bioinformatics.cylineup.visual.VisualSettings;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CyNetworkViewDesktopMgr;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.io.write.PresentationWriterManager;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
-import org.cytoscape.view.presentation.RenderingEngineFactory;
 import org.cytoscape.view.presentation.RenderingEngineManager;
-import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
-import org.cytoscape.view.vizmap.VisualMappingManager;
-import org.cytoscape.view.vizmap.VisualStyleFactory;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 public class CyLineUpReferences {
 	
-	public CyNetworkManager networkManager;
+	//public CyNetworkManager networkManager;
 	public CyNetworkViewManager networkViewManager;
 	public CySwingApplication desktopApp;
 	public CyNetworkViewDesktopMgr desktopManager;
 	public CyApplicationManager appManager;
 	public CyNetworkViewFactory networkFactory;
-	public VisualMappingManager vmmServiceRef;
-	public VisualStyleFactory visualStyleFactoryServiceRef;
-	public VisualMappingFunctionFactory vmfFactory;
-	
-	public RenderingEngineFactory<CyNetworkView> renderingFactory;
 	public RenderingEngineManager renderingManager;
+	public PresentationWriterManager presentationWriterManager;
+	public DialogTaskManager taskManager;
 	
 	public ArrayList<SmallMultiple> smallMultiples = new ArrayList<SmallMultiple>();
 	public String idColName = "name";
@@ -48,6 +42,8 @@ public class CyLineUpReferences {
 	public Data data;
 	
 	public ExportCanvasSettings export = new ExportCanvasSettings();
+	
+	public Image preview;
 	
 	public ActionListener importAction;
 	public ActionListener updateAction;

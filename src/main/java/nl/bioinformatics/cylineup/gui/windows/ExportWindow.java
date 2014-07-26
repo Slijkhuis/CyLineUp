@@ -16,27 +16,41 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import nl.bioinformatics.cylineup.CyLineUpReferences;
+import nl.bioinformatics.cylineup.gui.ExportCanvas;
 import nl.bioinformatics.cylineup.gui.ExportCanvasSettings;
-import nl.bioinformatics.cylineup.gui.JCanvas;
 import nl.bioinformatics.cylineup.gui.LayoutHelper;
 import nl.bioinformatics.cylineup.gui.SwingHelper;
+import nl.bioinformatics.cylineup.tasks.PreviewTask;
+import nl.bioinformatics.cylineup.tasks.RepaintTask;
+
+import org.cytoscape.work.TaskIterator;
 
 public class ExportWindow extends JFrame {
 	
 	private static final long serialVersionUID = -5173666802083389912L;
 	
+	private CyLineUpReferences refs;
+	
+	private void updateCanvas(ExportCanvas canvas) {
+		refs.taskManager.execute(new TaskIterator(
+				new PreviewTask(refs),
+				new RepaintTask(canvas)
+			));
+	}
+	
 	public ExportWindow(final CyLineUpReferences refs) {
 		
-		/** Create GUI elements **/
-		final JCanvas canvas = new JCanvas(refs);
+		this.refs = refs;
 		
-		final JSlider widthCorrection = new JSlider(-50, 100);
-		final JSlider heightCorrection = new JSlider(-50, 100);
+		/** Create GUI elements **/
+		final ExportCanvas canvas = new ExportCanvas(refs);
+		final JScrollPane scrollPane = new JScrollPane(canvas);
 		
 		final JSlider margins = new JSlider(0, 50);
 		
@@ -58,9 +72,7 @@ public class ExportWindow extends JFrame {
 		/** Create layout **/
 		LayoutHelper layout = new LayoutHelper(this);
 		
-		layout.addRow(true, new float[] {1.0f}, canvas);
-		layout.addRow(new float[] { 1.0f, 1.0f }, new JLabel("<html><p>Width correction</p></html>"), new JLabel("<html><p>Height correction</p></html>"));
-		layout.addRow(new float[] { 1.0f, 1.0f }, widthCorrection, heightCorrection);
+		layout.addRow(true, new float[] {1.0f}, scrollPane);
 		layout.addRow(new JLabel("<html><p>Margins</p></html>"));
 		layout.addRow(margins);
 		layout.addRow(new JLabel("<html><p>Border</p></html>"));
@@ -75,29 +87,12 @@ public class ExportWindow extends JFrame {
 		canvas.setBackground(new Color(255,255,255));
 		canvas.setOpaque(true);
 		
-		// Set width correction default value
-		widthCorrection.setValue(refs.export.getWidthCorrection());
-		
-		// Set width correction change listener
-		widthCorrection.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				refs.export.setWidthCorrection(widthCorrection.getValue());
-				canvas.repaint();
-			}
-		});
-		
-		// Set height correction default value
-		heightCorrection.setValue(refs.export.getHeightCorrection());
-		
-		// Set height correction change listener
-		heightCorrection.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				refs.export.setHeightCorrection(heightCorrection.getValue());
-				canvas.repaint();
-			}
-		});
+		// Set canvas size
+		if(refs.settings.isAutoSize() || refs.settings.calculatedSize == null) {
+			canvas.setPreferredSize(refs.desktopManager.getDesktopViewAreaSize());
+		} else {
+			canvas.setPreferredSize(refs.settings.calculatedSize);
+		}
 		
 		// Set margins default value
 		margins.setValue(refs.export.getMargins());
@@ -107,7 +102,7 @@ public class ExportWindow extends JFrame {
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
 				refs.export.setMargins(margins.getValue());
-				canvas.repaint();
+				updateCanvas(canvas);
 			}
 		});
 		
@@ -119,7 +114,7 @@ public class ExportWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				refs.export.setBorder(border.isSelected());
-				canvas.repaint();
+				updateCanvas(canvas);
 			}
 		});
 		
@@ -131,7 +126,7 @@ public class ExportWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				refs.export.setTitles(titles.isSelected());
-				canvas.repaint();
+				updateCanvas(canvas);
 			}
 		});
 		
@@ -149,14 +144,14 @@ public class ExportWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				refs.export.setTitlePosition(ExportCanvasSettings.POSITION_TOP);
-				canvas.repaint();
+				updateCanvas(canvas);
 			}
 		});
 		titlePositionBottom.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				refs.export.setTitlePosition(ExportCanvasSettings.POSITION_BOTTOM);
-				canvas.repaint();
+				updateCanvas(canvas);
 			}
 		});
 		
@@ -180,6 +175,12 @@ public class ExportWindow extends JFrame {
 				String filename = dir + file;
 				
 				if(!filename.equals("")) {
+					
+					// Add extension to the filename if not added already
+					if(!filename.endsWith(".png")) {
+						filename += ".png";
+					}
+					
 					BufferedImage im = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
 					canvas.paint(im.getGraphics());
 					try {
@@ -201,7 +202,7 @@ public class ExportWindow extends JFrame {
 		setAlwaysOnTop(true);
 		
 		// Repaint canvas
-		canvas.repaint();
+		updateCanvas(canvas);
 		
 	}
 	

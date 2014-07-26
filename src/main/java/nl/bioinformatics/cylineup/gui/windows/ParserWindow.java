@@ -18,11 +18,14 @@ import javax.swing.JRadioButton;
 import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
 
+import org.cytoscape.work.TaskIterator;
+
 import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.data.CsvData;
 import nl.bioinformatics.cylineup.gui.LayoutHelper;
 import nl.bioinformatics.cylineup.gui.ParserSeparatorChangeListener;
 import nl.bioinformatics.cylineup.gui.SwingHelper;
+import nl.bioinformatics.cylineup.tasks.ImportTask;
 
 public class ParserWindow {
 	
@@ -85,7 +88,7 @@ public class ParserWindow {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				frame.dispose();
-				new ImportWindow(refs);
+				refs.taskManager.execute(new TaskIterator(new ImportTask(refs)));
 			}
 		});
 		

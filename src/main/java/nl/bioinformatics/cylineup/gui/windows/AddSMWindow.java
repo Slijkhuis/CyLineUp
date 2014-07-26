@@ -86,7 +86,7 @@ public class AddSMWindow extends JFrame {
 		});
 		
 		/** Show window **/
-		SwingHelper.centerWindow(this, 300);
+		SwingHelper.centerWindow(this, 320);
 		pack();
 		setVisible(true);
 		setAlwaysOnTop(true);

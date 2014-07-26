@@ -62,19 +62,17 @@ public class VisualHelper {
 			// Get table
 			CyTable table = view.getModel().getDefaultNodeTable();
 			
-			// Set edge styles
-			for(View<CyEdge> edge : view.getEdgeViews()) {
-				refs.edgeStyles.get(edge.getModel().getSUID()).copyStylesTo(edge);
-			}
-			
 			// Set node styles
 			for(View<CyNode> node : view.getNodeViews()) {
 				
+				// Get SUID
+				long nodeSUID = node.getModel().getSUID();
+				
 				// Set default node styles (from parent network)
-				refs.nodeStyles.get(node.getModel().getSUID()).copyStylesTo(node);
+				refs.nodeStyles.get(nodeSUID).copyStylesTo(node);
 				
 				// Get row
-				CyRow row = table.getRow(node.getModel().getSUID());
+				CyRow row = table.getRow(nodeSUID);
 				
 				// Get values
 				Double value = row.get(sm.getValueColumn().getTitle(), Double.class);
@@ -158,6 +156,23 @@ public class VisualHelper {
 					
 				}
 				
+				// Check if there no data for this node
+				if(value == null && pValue == null) {
+					// Check if we should 'gray out' the node
+					if(refs.settings.getNoDataNodes() == VisualSettings.NODATA_GREY) {
+						node.setLockedValue(BasicVisualLexicon.NODE_FILL_COLOR, Color.GRAY);
+						
+					// Or even hide it
+					} else if (refs.settings.getNoDataNodes() == VisualSettings.NODATA_HIDE) {
+						node.setLockedValue(BasicVisualLexicon.NODE_VISIBLE, false);
+					}
+				}
+				
+			}
+			
+			// Set edge styles
+			for(View<CyEdge> edge : view.getEdgeViews()) {
+				refs.edgeStyles.get(edge.getModel().getSUID()).copyStylesTo(edge);
 			}
 			
 		}
