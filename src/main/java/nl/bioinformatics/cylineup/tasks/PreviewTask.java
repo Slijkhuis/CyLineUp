@@ -14,9 +14,13 @@ import nl.bioinformatics.cylineup.gui.ExportCanvasSettings;
 import nl.bioinformatics.cylineup.models.SmallMultiple;
 import nl.bioinformatics.cylineup.visual.VisualSettings;
 
+import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.presentation.RenderingEngine;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.freehep.graphicsio.svg.SVGGraphics2D;
 
 public class PreviewTask extends AbstractTask {
 
@@ -78,7 +82,14 @@ public class PreviewTask extends AbstractTask {
 		}
 				
 		// Create preview
+				
 		Graphics preview = null;
+		SVGGraphics2D svg = null;
+		Dimension size = refs.desktopManager.getDesktopViewAreaSize();
+		File file = File.createTempFile("network-view", ".svg");
+		svg = new SVGGraphics2D(file, size);
+		svg.startExport();
+		
 		for(SmallMultiple sm : refs.smallMultiples) {
 			
 			// Set width and height if not already set
@@ -86,6 +97,7 @@ public class PreviewTask extends AbstractTask {
 				w = sm.getView().getVisualProperty(BasicVisualLexicon.NETWORK_WIDTH).intValue();
 				h = sm.getView().getVisualProperty(BasicVisualLexicon.NETWORK_HEIGHT).intValue();
 			}
+			
 			
 			// Minimum dimensions are 10x10
 			if(w < 10) { w = 10; }
@@ -122,11 +134,14 @@ public class PreviewTask extends AbstractTask {
 				
 				// Draw background color
 				preview.setColor(new Color(255, 255, 255));
+				svg.setColor(new Color(255, 255, 255));
 				preview.fillRect(0, 0, totalWidth, totalHeight);
+				svg.fillRect(0, 0, totalWidth, totalHeight);
 			}
 			
 			// Set drawing color
 			preview.setColor(new Color(0, 0, 0));
+			svg.setColor(new Color(0, 0, 0));
 			
 			// Calculate x and y
 			int x = col * w + col * refs.export.getMargins();
@@ -156,18 +171,33 @@ public class PreviewTask extends AbstractTask {
 				
 				// Draw title
 				preview.drawString(sm.getName(), title_x, title_y + preview.getFontMetrics().getHeight());
-				
+				svg.drawString(sm.getName(), title_x, title_y + preview.getFontMetrics().getHeight());
 			}
 			
 			// Read image file
-			Image image = ImageIO.read(new File(sm.getTempRaster()));
+			//Image image = ImageIO.read(new File(sm.getTempRaster()));
+			
+			// Get view
+			CyNetworkView view = sm.getView();
+						
+			// Get rendering engine
+			RenderingEngine<?> engine = (RenderingEngine<?>) refs.renderingManager.getRenderingEngines(view).toArray()[0];
+						
+			//Image image = engine.createImage(w,h);
+			
 			
 			// Draw image
-			preview.drawImage(image, x, y, null);
+			//preview.drawImage(image, x, y, null);
+			preview.translate(x, y);
+			svg.translate(x, y);
+			engine.printCanvas(svg);
+			engine.printCanvas(preview);
+			
 			
 			// Check if we need to draw a border
 			if(refs.export.isBorder()) {
 				preview.drawRect(x, y, w, h);
+				svg.drawRect(x, y, w, h);
 			}
 			
 			// Go to next column
@@ -182,6 +212,7 @@ public class PreviewTask extends AbstractTask {
 		
 		// Done
 		taskMonitor.setProgress(1.0);
+		svg.endExport();
 		
 	}
 

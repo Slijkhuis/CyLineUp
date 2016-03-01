@@ -5,7 +5,7 @@ public class ExportCanvasSettings {
 	public static final int POSITION_TOP = 1;
 	public static final int POSITION_BOTTOM = 2;
 	
-	private int margins = 10;
+	private int margins = 50;
 	private boolean border = true;
 	private boolean titles = true;
 	private int titlePosition = POSITION_BOTTOM;

@@ -32,5 +32,9 @@ public class UpdateTask extends AbstractTask {
 		// Done
 		taskMonitor.setProgress(1.0);
 	}
-
+	
+	@Override
+	public void cancel() {
+		
+	}
 }

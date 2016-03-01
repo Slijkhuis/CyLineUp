@@ -16,6 +16,7 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CyNetworkViewDesktopMgr;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.io.write.PresentationWriterManager;
+import org.cytoscape.util.swing.FileUtil;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.RenderingEngineManager;
@@ -40,6 +41,7 @@ public class CyLineUpReferences {
 	public HashMap<Long, NodeStyle> nodeStyles;
 	public HashMap<Long, EdgeStyle> edgeStyles;
 	public Data data;
+	public FileUtil fileUtil;
 	
 	public ExportCanvasSettings export = new ExportCanvasSettings();
 	

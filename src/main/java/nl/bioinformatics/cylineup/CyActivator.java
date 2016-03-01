@@ -13,6 +13,7 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.io.write.PresentationWriterManager;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.util.swing.FileUtil;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.RenderingEngineManager;
@@ -39,6 +40,7 @@ public class CyActivator extends AbstractCyActivator {
 		refs.renderingManager = getService(bc,RenderingEngineManager.class);
 		refs.presentationWriterManager = getService(bc, PresentationWriterManager.class);
 		refs.taskManager = getService(bc, DialogTaskManager.class);
+		refs.fileUtil = getService(bc,FileUtil.class);
 		
 		// Add import action
 		CyLineUpImportAction importAction = new CyLineUpImportAction(refs);

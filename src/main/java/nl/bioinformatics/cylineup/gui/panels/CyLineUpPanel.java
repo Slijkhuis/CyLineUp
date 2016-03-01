@@ -29,7 +29,6 @@ import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.gui.LayoutHelper;
 import nl.bioinformatics.cylineup.tasks.ExportWindowTask;
 import nl.bioinformatics.cylineup.tasks.PreviewTask;
-import nl.bioinformatics.cylineup.tasks.RenderTask;
 import nl.bioinformatics.cylineup.tasks.UpdateTask;
 import nl.bioinformatics.cylineup.visual.VisualSettings;
 
@@ -127,21 +126,14 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		fgroup.add(f2);
 		fgroup.add(f3);
 		
-		// Create transparency radio buttons
-		ButtonGroup tgroup = new ButtonGroup();
-		JRadioButton t1 = new JRadioButton("<html><p>Don't use transparency</p></html>");
-		JRadioButton t2 = new JRadioButton("<html><p>Use transparency to visualize p-value</p></html>");
-		JRadioButton t3 = new JRadioButton("<html><p>Use transparency to visualize fold change</p></html>");
-		tgroup.add(t1);
-		tgroup.add(t2);
-		tgroup.add(t3);
+		
 		
 		// Create export button
-		JButton exportButton = new JButton("<html><p>Export PNG</p></html>");
+		JButton exportButton = new JButton("<html><p>Export SVG</p></html>");
 		
 		/** Create layout **/
 		
-		layout.addRow(new JLabel("<html><h1>CyLineUp v1.0.0</h1></html>"));
+		layout.addRow(new JLabel("<html><h1>CyLineUp v1.0.1</h1></html>"));
 		layout.addRow(new JLabel("<html><b>DATA</b></html>"));
 		layout.addRow(new JLabel("<html><p>Start with opening the network to which you want to map your transcriptome data. Then press the button 'Import data' below to open your datafile and map columns to small multiples of the current network.</p></html>"));
 		layout.addRow(importBtn);
@@ -176,10 +168,6 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		layout.addRow(new JLabel("<html><p>Down-regulated genes</p></html>"));
 		layout.addRow(useDownColor);
 		layout.addRow(new float[] {1f, 1f}, pickDownColor, downPreview);
-		layout.addRow(new JLabel("<html><b>Transparency</b></html>"));
-		layout.addRow(t1);
-		layout.addRow(t2);
-		layout.addRow(t3);
 		layout.addRow(new JLabel("<html><b>EXPORT</b></html>"));
 		layout.addRow(exportButton);
 		
@@ -194,7 +182,6 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		useUpColor.setSelected(refs.settings.isUseFillColorForUp());
 		useDownColor.setSelected(refs.settings.isUseFillColorForDown());
 		f3.setSelected(true);
-		t1.setSelected(true);
 		
 		/** Assign actions **/
 		
@@ -390,36 +377,11 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 			}
 		});
 		
-		// Set actions for the transparency radio buttons
-		t1.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				refs.settings.setUseTransparency(VisualSettings.DONT_USE);
-				doAutoupdate();
-			}
-		});
-		t2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				refs.settings.setUseTransparency(VisualSettings.USE_FOR_PVALUE);
-				doAutoupdate();
-			}
-		});
-		t3.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				refs.settings.setUseTransparency(VisualSettings.USE_FOR_FOLDCHANGE);
-				doAutoupdate();
-			}
-		});
-		
 		exportButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// Run task(s)
 				refs.taskManager.execute(new TaskIterator(
-						new RenderTask(refs),
-						new PreviewTask(refs),
 						new ExportWindowTask(refs)
 					));
 			}
