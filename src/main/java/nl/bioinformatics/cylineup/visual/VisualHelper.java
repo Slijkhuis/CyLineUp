@@ -1,10 +1,8 @@
 package nl.bioinformatics.cylineup.visual;
 
 import java.awt.Color;
-
-import nl.bioinformatics.cylineup.CyLineUpReferences;
-import nl.bioinformatics.cylineup.gui.SwingHelper;
-import nl.bioinformatics.cylineup.models.SmallMultiple;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNode;
@@ -13,6 +11,9 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
+
+import nl.bioinformatics.cylineup.CyLineUpReferences;
+import nl.bioinformatics.cylineup.models.SmallMultiple;
 
 public class VisualHelper {
 	
@@ -55,9 +56,11 @@ public class VisualHelper {
 			CyNetworkView view = sm.getView();
 			
 			// Set zoom and panning
-			view.setVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR, networkView.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR));
-			view.setVisualProperty(BasicVisualLexicon.NETWORK_CENTER_X_LOCATION, networkView.getVisualProperty(BasicVisualLexicon.NETWORK_CENTER_X_LOCATION));
-			view.setVisualProperty(BasicVisualLexicon.NETWORK_CENTER_Y_LOCATION, networkView.getVisualProperty(BasicVisualLexicon.NETWORK_CENTER_Y_LOCATION));
+			if(networkView != null) {
+				view.setVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR, networkView.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR));
+				view.setVisualProperty(BasicVisualLexicon.NETWORK_CENTER_X_LOCATION, networkView.getVisualProperty(BasicVisualLexicon.NETWORK_CENTER_X_LOCATION));
+				view.setVisualProperty(BasicVisualLexicon.NETWORK_CENTER_Y_LOCATION, networkView.getVisualProperty(BasicVisualLexicon.NETWORK_CENTER_Y_LOCATION));
+			}
 			
 			// Get table
 			CyTable table = view.getModel().getDefaultNodeTable();
@@ -177,14 +180,19 @@ public class VisualHelper {
 			
 		}
 		
-		// Arrange windows
-		SwingHelper.arrangeWindows(refs);
-		
 		// Update views
+		List<CyNetworkView> views = new ArrayList<CyNetworkView>();
+		
 		for(SmallMultiple sm : refs.smallMultiples) {
 			// Fit networks in windows
 			if(fit) { sm.getView().fitContent(); }
 			sm.getView().updateView();
+			views.add(sm.getView());
+		}
+		
+		// Select views
+		if (!views.isEmpty()) {
+			refs.appManager.setSelectedNetworkViews(views);
 		}
 		
 	}
