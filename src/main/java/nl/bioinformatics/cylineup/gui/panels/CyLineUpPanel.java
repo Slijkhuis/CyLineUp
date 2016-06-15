@@ -28,7 +28,6 @@ import javax.swing.event.ChangeListener;
 import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.gui.LayoutHelper;
 import nl.bioinformatics.cylineup.tasks.ExportWindowTask;
-import nl.bioinformatics.cylineup.tasks.PreviewTask;
 import nl.bioinformatics.cylineup.tasks.UpdateTask;
 import nl.bioinformatics.cylineup.visual.VisualSettings;
 
@@ -133,7 +132,7 @@ public class CyLineUpPanel extends JPanel implements CytoPanelComponent {
 		
 		/** Create layout **/
 		
-		layout.addRow(new JLabel("<html><h1>CyLineUp v1.0.1</h1></html>"));
+		layout.addRow(new JLabel("<html><h1>CyLineUp v1.0.2</h1></html>"));
 		layout.addRow(new JLabel("<html><b>DATA</b></html>"));
 		layout.addRow(new JLabel("<html><p>Start with opening the network to which you want to map your transcriptome data. Then press the button 'Import data' below to open your datafile and map columns to small multiples of the current network.</p></html>"));
 		layout.addRow(importBtn);

@@ -1,14 +1,22 @@
 package nl.bioinformatics.cylineup.gui;
 
+import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.SwingUtilities;
+
+import org.cytoscape.view.model.CyNetworkView;
+
+import com.sun.glass.events.KeyEvent;
 
 import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.models.SmallMultiple;
-import nl.bioinformatics.cylineup.visual.VisualSettings;
 
 public class SwingHelper {
 	
@@ -65,79 +73,34 @@ public class SwingHelper {
 	 */
 	public static void arrangeWindows(CyLineUpReferences refs) {
 		
-		// Get desktop size
-		final Dimension desktopSize = refs.desktopManager.getDesktopViewAreaSize();
-		
-		// Check if we need to override desktop size
-		if(!refs.settings.isAutoSize()) {
-			desktopSize.setSize(new Dimension(refs.settings.getSizeWidth(), refs.settings.getSizeHeight()));
-		}
-		
-		// Get the total frame count
-		int frameCount = refs.smallMultiples.size(); 
-		if ( frameCount == 0)
-			return;
-		
-		// Default column and row count
-		int cols = 1;
-		int rows = 1;
-		
-		// Get grid mode and calculate amount of rows and columns
-		if(refs.settings.getGridMode() == VisualSettings.GRID_FIX_COLUMNS) {
-			
-			// Fixed amount of columns, get as many rows as we need
-			cols = refs.settings.getGridFixed();
-			while(cols * rows < frameCount) {
-				rows = rows + 1;
-			}
-			
-		} else if (refs.settings.getGridMode() == VisualSettings.GRID_FIX_ROWS) {
-			
-			// Fixed amount of rows, get as many columns as we need
-			rows = refs.settings.getGridFixed();
-			while(cols * rows < frameCount) {
-				cols = cols + 1;
-			}
-			
-		} else { // GRID_AUTO
-			
-			// Increase column count first and then row count until we have enough space
-			while(cols * rows < frameCount) {
-				if(cols > rows) {
-					rows = rows + 1;
-				} else {
-					cols = cols + 1;
-				}
-			}
-		}
-		
-		// Calculate cell width and height
-		int width = desktopSize.width / cols;
-		int height = desktopSize.height / rows;
-		
-		// Initial position (left top)
-		int current_col = 0;
-		int current_row = 0;
-		
-		// Loop over the sorted keys
+		List<CyNetworkView> views = new ArrayList<CyNetworkView>();
 		for(SmallMultiple sm : refs.smallMultiples) {
-			
-			// Calculate network view position
-			int x = current_col * width;
-			int y = current_row * height;
-			
-			// Set network view bounds
-			refs.desktopManager.setBounds(sm.getView(), new Rectangle(x, y, width, height));
-			//viewMap.get(sortedView).fitContent();
-			
-			// Go to next column
-			current_col++;
-			
-			// Go to next row if this row is full
-			if(current_col==cols) {
-				current_col = 0;
-				current_row++;
-			}
+			views.add(sm.getView());
+		}
+		
+		if(!views.isEmpty()) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						// Select views
+						refs.appManager.setSelectedNetworkViews(views);
+						
+						// Make sure the main Cytoscape window is active
+						refs.desktopApp.getJFrame().toFront();
+						
+						Robot robot = new Robot();
+						// Simulate key press for Grid Mode
+				        robot.keyPress(KeyEvent.VK_G);
+				        robot.keyRelease(KeyEvent.VK_G);
+				        // Simulate key press for View Mode
+				        robot.keyPress(KeyEvent.VK_V);
+				        robot.keyRelease(KeyEvent.VK_V);
+					} catch (AWTException e) {
+						e.printStackTrace();
+					}
+				}
+			});
 		}
 	}
 }

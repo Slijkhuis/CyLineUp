@@ -17,6 +17,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.cytoscape.work.FinishStatus;
+import org.cytoscape.work.ObservableTask;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskObserver;
+
 import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.gui.ColumnItem;
 import nl.bioinformatics.cylineup.gui.JTableButtonMouseListener;
@@ -28,8 +33,6 @@ import nl.bioinformatics.cylineup.models.SMTableModel;
 import nl.bioinformatics.cylineup.models.SmallMultiple;
 import nl.bioinformatics.cylineup.models.TableRowTransferHandler;
 import nl.bioinformatics.cylineup.tasks.CreateTask;
-
-import org.cytoscape.work.TaskIterator;
 
 public class DataWindow extends JFrame {
 
@@ -210,7 +213,18 @@ public class DataWindow extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				
 				// Run creation task
-				refs.taskManager.execute(new TaskIterator(new CreateTask(tModel.smallMultiples, refs)));
+				CreateTask task = new CreateTask(tModel.smallMultiples, refs);
+				refs.taskManager.execute(new TaskIterator(task), new TaskObserver() {
+					@Override
+					public void taskFinished(ObservableTask task) {
+					}
+					@Override
+					public void allFinished(FinishStatus status) {
+						if(status.getType() == FinishStatus.Type.SUCCEEDED) {
+							SwingHelper.arrangeWindows(refs);
+						}
+					}
+				});
 				
 				// Close current window
 				dispose();

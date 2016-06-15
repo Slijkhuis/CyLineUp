@@ -1,16 +1,19 @@
 package nl.bioinformatics.cylineup.tasks;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ObservableTask;
+import org.cytoscape.work.TaskMonitor;
 
 import nl.bioinformatics.cylineup.CyLineUpReferences;
 import nl.bioinformatics.cylineup.NetworkHelper;
 import nl.bioinformatics.cylineup.models.SmallMultiple;
 import nl.bioinformatics.cylineup.visual.VisualHelper;
 
-import org.cytoscape.work.AbstractTask;
-import org.cytoscape.work.TaskMonitor;
-
-public class CreateTask extends AbstractTask {
+public class CreateTask extends AbstractTask implements ObservableTask {
 
 	public CyLineUpReferences refs;
 	
@@ -47,6 +50,17 @@ public class CreateTask extends AbstractTask {
 		// Done
 		taskMonitor.setProgress(1.0);
 		
+	}
+
+	@Override
+	public Object getResults(Class type) {
+		
+		List<CyNetworkView> views = new ArrayList<CyNetworkView>();
+		for(SmallMultiple sm : refs.smallMultiples) {
+			views.add(sm.getView());
+		}
+		
+		return views;
 	}
 
 }

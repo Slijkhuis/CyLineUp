@@ -1,16 +1,17 @@
 package nl.bioinformatics.cylineup.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
-
-import nl.bioinformatics.cylineup.CyLineUpReferences;
-import nl.bioinformatics.cylineup.models.SmallMultiple;
-import nl.bioinformatics.cylineup.tasks.ImportTask;
 
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
+
+import nl.bioinformatics.cylineup.CyLineUpReferences;
+import nl.bioinformatics.cylineup.models.SmallMultiple;
+import nl.bioinformatics.cylineup.tasks.ImportTask;
 
 public class CyLineUpImportAction extends AbstractCyAction {
 	
@@ -39,8 +40,10 @@ public class CyLineUpImportAction extends AbstractCyAction {
 			
 			// Delete network views, or do nothing
 			if(answer == JOptionPane.OK_OPTION) {
+				Set<CyNetworkView> viewSet = refs.networkViewManager.getNetworkViewSet();
+				
 				for(SmallMultiple sm : refs.smallMultiples) {
-					if(sm.getView() != null) {
+					if(sm.getView() != null && viewSet.contains(sm.getView())) {
 						refs.networkViewManager.destroyNetworkView(sm.getView());
 					}
 				}
